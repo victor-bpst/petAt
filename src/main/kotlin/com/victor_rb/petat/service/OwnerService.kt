@@ -1,19 +1,24 @@
 package com.victor_rb.petat.service
 
+import com.victor_rb.petat.dto.ChangePasswordRequestDTO
 import com.victor_rb.petat.dto.LoginRequestDTO
 import com.victor_rb.petat.dto.RegisterRequestDTO
 import com.victor_rb.petat.entity.Owner
+import com.victor_rb.petat.exceptions.AccountNotActiveException
 import com.victor_rb.petat.exceptions.DocumentNumberExistsException
 import com.victor_rb.petat.exceptions.EmailExistsException
+import com.victor_rb.petat.exceptions.PasswordMismatchException
 import com.victor_rb.petat.mapper.OwnerMapper
 import com.victor_rb.petat.repository.OwnerRepository
 import com.victor_rb.petat.security.JwtUtil
 import com.victor_rb.petat.utils.communication.EmailVerification
 import com.victor_rb.petat.utils.enums.MailValidationStatus
+import com.victor_rb.petat.utils.enums.MailValidationStatus.ACTIVATED
+import com.victor_rb.petat.utils.enums.MailValidationStatus.PASSWORD_RESET
 import com.victor_rb.petat.utils.enums.RolesEnum
+import com.victor_rb.petat.utils.enums.RolesEnum.PET_OWNER
 import org.apache.commons.lang3.RandomStringUtils
-import org.springframework.http.ResponseEntity
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 @Service
@@ -21,7 +26,8 @@ class OwnerService (
     private val repository: OwnerRepository,
     private val emailVerification: EmailVerification,
     private val jwtUtil: JwtUtil,
-    private val ownerMapper: OwnerMapper
+    private val ownerMapper: OwnerMapper,
+    private val passwordEncoder: PasswordEncoder
 ){
 
     fun register(data: RegisterRequestDTO): Owner {
@@ -49,20 +55,15 @@ class OwnerService (
 
         val owner = repository.findByEmail(data.email)
 
-        var token = ""
-
-        if (owner.registrationStatus == MailValidationStatus.NOT_ACTIVATED
-            && owner.verificationToken == data.rawPassword
-        ){
-            token = jwtUtil.generateToken(data.email, RolesEnum.TEMPORARY)
-
-        }else if (owner.registrationStatus == MailValidationStatus.ACTIVATED){
-            val encryptedPassword = BCryptPasswordEncoder().encode(data.rawPassword)
-
-            if (encryptedPassword.equals(owner.encryptedPassword)){
-                token = jwtUtil.generateToken(data.email, RolesEnum.PET_OWNER)
-            }
+        if (owner.registrationStatus != ACTIVATED){
+            throw AccountNotActiveException()
         }
+
+        if(!passwordEncoder.matches(data.rawPassword, owner.encryptedPassword)){
+            throw PasswordMismatchException()
+        }
+
+        val token = jwtUtil.generateToken(data.email, PET_OWNER)
 
         return token
     }

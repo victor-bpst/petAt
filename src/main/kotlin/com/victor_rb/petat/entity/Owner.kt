@@ -2,6 +2,7 @@ package com.victor_rb.petat.entity
 
 import com.victor_rb.petat.utils.enums.DocumentTypeEnum
 import com.victor_rb.petat.utils.enums.MailValidationStatus
+import com.victor_rb.petat.utils.enums.MailValidationStatus.NOT_ACTIVATED
 import org.apache.commons.lang3.RandomStringUtils
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
@@ -19,7 +20,7 @@ class Owner (
     @Indexed(unique = true) val documentNumber: String,
     val contact: String,
     val encryptedPassword: String = "not_activate",
-    val registrationStatus: MailValidationStatus = MailValidationStatus.NOT_ACTIVATED,
+    val registrationStatus: MailValidationStatus = NOT_ACTIVATED,
     val verificationToken: String = RandomStringUtils.randomAlphanumeric(12),
     val pet: List<Pet> = emptyList()
 )

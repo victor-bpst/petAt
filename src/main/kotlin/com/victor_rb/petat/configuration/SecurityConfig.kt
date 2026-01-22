@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 
@@ -23,7 +24,8 @@ class SecurityConfig {
             authorizeHttpRequests {
                 authorize("/api/register", permitAll)
                 authorize("/api/login", permitAll)
-                authorize("/api/reset", permitAll)
+                authorize("/api/passwordRecovery", permitAll)
+                authorize("/api/resetPassword", permitAll)
                 authorize("/api/**", authenticated)
             }
             oauth2ResourceServer { jwt {} }
@@ -39,4 +41,8 @@ class SecurityConfig {
             .build()
         return InMemoryUserDetailsManager(user)
     }
+
+    @Bean
+    fun passwordEncoder() : PasswordEncoder =
+        BCryptPasswordEncoder()
 }

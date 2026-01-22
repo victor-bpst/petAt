@@ -36,9 +36,9 @@ class OwnerController (private val ownerService: OwnerService) {
     }
 
     @PostMapping(
-        "/reset",
+        "/passwordRecovery",
         consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun resetPasswordRequest(@RequestBody request: Map<String, String>): ResponseEntity<String> {
+    fun passwordRecovery(@RequestBody request: Map<String, String>): ResponseEntity<String> {
 
         val email = request["email"]?.trim() ?: throw IllegalArgumentException("Necessario email válido")
 
